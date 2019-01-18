@@ -1,5 +1,7 @@
 package com.edgar.hackerplugin
 
+import jdk.internal.org.objectweb.asm.ClassReader
+import jdk.internal.org.objectweb.asm.ClassWriter
 import org.gradle.api.Plugin
 
 /**
