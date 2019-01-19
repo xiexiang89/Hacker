@@ -4,7 +4,10 @@ apply plugin: 'maven'
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'asm:asm:3.3.1'
+    implementation "com.android.tools.build:gradle:3.3.0"
+    implementation 'org.ow2.asm:asm:6.0'
+    implementation 'commons-io:commons-io:1.4'
+    implementation gradleApi()
 }
 
 sourceCompatibility = "8"

@@ -1,1 +1,1 @@
-include ':app', ':hackerPlugin'
+include ':app', ':hackerPlugin', ':buildsrc'
