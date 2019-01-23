@@ -1,8 +1,11 @@
 package com.edgar.hackerplugin.utils
 
-import com.codeless.plugin.MethodCell
-import com.codeless.plugin.ReWriterConfig
+import com.edgar.hackerplugin.MethodCell
+import com.edgar.hackerplugin.ParameterAnnotation
+import com.edgar.hackerplugin.ReWriterConfig
 import org.objectweb.asm.*
+
+import java.util.function.Consumer
 
 /**
  * Created by bryansharp(bsp0911932@163.com) on 2016/5/10.
@@ -81,6 +84,17 @@ public class ModifyClassUtil {
         methodVisitor.visitMethodInsn(opcode, owner, methodName, methodDesc, false);
     }
 
+    private static void visitParamsAnnotation(MethodVisitor methodVisitor, List<ParameterAnnotation> parameterAnnotations) {
+        if (Utils.isArrayEmpty(parameterAnnotations)) return
+        parameterAnnotations.forEach(new Consumer<ParameterAnnotation>() {
+            @Override
+            void accept(ParameterAnnotation parameterAnnotation) {
+                methodVisitor.visitParameterAnnotation(parameterAnnotation.index,
+                        parameterAnnotation.desc, true)
+            }
+        })
+    }
+
     static class MethodFilterClassVisitor extends ClassVisitor {
         public boolean onlyVisit = false;
         public HashSet<String> visitedFragMethods = new HashSet<>()// 无需判空
@@ -110,12 +124,20 @@ public class ModifyClassUtil {
                     if (visitedFragMethods.contains(key))
                         continue
                     mv = classVisitor.visitMethod(Opcodes.ACC_PUBLIC, methodCell.name, methodCell.desc, null, null);
-                    mv.visitCode();
-                    // call super
-                    visitMethodWithLoadedParams(mv, Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
-                    // call injected method
-                    visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, ReWriterConfig.sAgentClassName, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
-                    mv.visitInsn(Opcodes.RETURN);
+                    visitParamsAnnotation(mv,methodCell.parameterAnnotations)
+                    mv.visitCode()
+                    if (methodCell.callOnBeforeSuper) {
+                        // call injected method
+                        visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, ReWriterConfig.sAgentClassName, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                        // call super
+                        visitMethodWithLoadedParams(mv, Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                    } else {
+                        // call super
+                        visitMethodWithLoadedParams(mv, Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                        // call injected method
+                        visitMethodWithLoadedParams(mv, Opcodes.INVOKESTATIC, ReWriterConfig.sAgentClassName, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                    }
+                    mv.visitInsn(Opcodes.RETURN)
                     mv.visitMaxs(methodCell.paramsCount, methodCell.paramsCount);
                     mv.visitEnd();
                 }
@@ -198,7 +220,6 @@ public class ModifyClassUtil {
                     }
                 }
             }
-
             if (instanceOfFragment(superName)) {
                 MethodCell methodCell = ReWriterConfig.sFragmentMethods.get(name + desc)
                 if (methodCell != null) {
@@ -212,15 +233,23 @@ public class ModifyClassUtil {
                             myMv = new MethodLogVisitor(methodVisitor) {
 
                                 @Override
-                                void visitInsn(int opcode) {
-
-                                    // 确保super.onHiddenChanged(hidden);等先被调用
-                                    if (opcode == Opcodes.RETURN) { //在返回之前安插代码
+                                void visitCode() {
+                                    super.visitCode()
+                                    if (methodCell.callOnBeforeSuper) {
                                         visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, ReWriterConfig.sAgentClassName, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                                    }
+                                }
+
+                                @Override
+                                void visitInsn(int opcode) {
+                                    if (!methodCell.callOnBeforeSuper) {
+                                        // 确保super.onHiddenChanged(hidden);等先被调用
+                                        if (opcode == Opcodes.RETURN) { //在返回之前安插代码
+                                            visitMethodWithLoadedParams(methodVisitor, Opcodes.INVOKESTATIC, ReWriterConfig.sAgentClassName, methodCell.agentName, methodCell.agentDesc, methodCell.paramsStart, methodCell.paramsCount, methodCell.opcodes)
+                                        }
                                     }
                                     super.visitInsn(opcode);
                                 }
-
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

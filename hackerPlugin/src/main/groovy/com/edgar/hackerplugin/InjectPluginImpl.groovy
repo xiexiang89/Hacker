@@ -1,6 +1,8 @@
 package com.edgar.hackerplugin
 
 import com.android.build.gradle.BaseExtension
+import com.edgar.hackerplugin.utils.DataHelper
+import com.edgar.hackerplugin.utils.Log
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -12,14 +14,14 @@ class InjectPluginImpl implements Plugin<Project> {
         registerTransform(project)
         initDir(project);
         project.afterEvaluate {
-            com.codeless.plugin.utils.Log.setQuiet(project.codelessConfig.keepQuiet);
-            com.codeless.plugin.utils.Log.setShowHelp(project.codelessConfig.showHelp);
-            com.codeless.plugin.utils.Log.logHelp();
+           Log.setQuiet(project.codelessConfig.keepQuiet);
+           Log.setShowHelp(project.codelessConfig.showHelp);
+           Log.logHelp();
             if (project.codelessConfig.watchTimeConsume) {
-                com.codeless.plugin.utils.Log.info "watchTimeConsume enabled"
+               Log.info "watchTimeConsume enabled"
                 project.gradle.addListener(new TimeListener())
             } else {
-                com.codeless.plugin.utils.Log.info "watchTimeConsume disabled"
+                Log.info "watchTimeConsume disabled"
             }
         }
     }
@@ -36,6 +38,6 @@ class InjectPluginImpl implements Plugin<Project> {
         if (!pluginTmpDir.exists()) {
             pluginTmpDir.mkdir()
         }
-        com.codeless.plugin.utils.DataHelper.ext.pluginTmpDir = pluginTmpDir
+        DataHelper.ext.pluginTmpDir = pluginTmpDir
     }
 }

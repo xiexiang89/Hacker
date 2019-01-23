@@ -21,8 +21,11 @@ public class MethodCell {
     int paramsCount
     // 参数类型对应的ASM指令，加载不同类型的参数需要不同的指令
     List<Integer> opcodes
+    boolean callOnBeforeSuper
+    List<ParameterAnnotation> parameterAnnotations
 
-    MethodCell(String name, String desc, String parent, String agentName, String agentDesc, int paramsStart, int paramsCount, List<Integer> opcodes) {
+    MethodCell(String name, String desc, String parent, String agentName, String agentDesc, int paramsStart, int paramsCount,
+               List<Integer> opcodes, boolean callOnBeforeSuper=false, List<ParameterAnnotation> parameterAnnotations = null) {
         this.name = name
         this.desc = desc
         this.parent = parent
@@ -31,5 +34,8 @@ public class MethodCell {
         this.paramsStart = paramsStart
         this.paramsCount = paramsCount
         this.opcodes = opcodes
+        this.callOnBeforeSuper = callOnBeforeSuper
+        this.parameterAnnotations = parameterAnnotations
     }
+
 }

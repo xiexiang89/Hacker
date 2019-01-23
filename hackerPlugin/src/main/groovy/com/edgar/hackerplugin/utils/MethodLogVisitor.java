@@ -46,7 +46,7 @@ public class MethodLogVisitor extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        Log.logEach("visitFieldInsn", Log.getOpName(opcode), owner, name, desc);
+//        Log.logEach("visitFieldInsn", Log.getOpName(opcode), owner, name, desc);
         super.visitFieldInsn(opcode, owner, name, desc);
     }
 

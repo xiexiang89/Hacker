@@ -5,6 +5,9 @@ import com.android.annotations.Nullable
 import com.android.build.api.transform.*
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.pipeline.TransformManager
+import com.edgar.hackerplugin.utils.DataHelper
+import com.edgar.hackerplugin.utils.Log
+import com.edgar.hackerplugin.utils.ModifyClassUtil
 import groovy.io.FileType
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.io.FileUtils
@@ -57,7 +60,7 @@ public class InjectTransform extends Transform {
             @NonNull Collection<TransformInput> referencedInputs,
             @Nullable TransformOutputProvider outputProvider,
             boolean isIncremental) throws IOException, TransformException, InterruptedException {
-        com.codeless.plugin.utils.Log.info "==============${project.codelessConfig.pluginName + ' '}transform enter=============="
+        Log.info "==============${project.codelessConfig.pluginName + ' '}transform enter=============="
         android = project.extensions.getByType(AppExtension)
 //        String flavorAndBuildType = context.name.split("For")[1]
 //        Log.info("flavorAndBuildType ${flavorAndBuildType}")
@@ -72,7 +75,7 @@ public class InjectTransform extends Transform {
         HashSet<String> inputPackages = project.codelessConfig.targetPackages
         if (inputPackages != null) {
             targetPackages.addAll(inputPackages);
-            com.codeless.plugin.utils.Log.info "==============@targetPackages = ${targetPackages}=============="
+            Log.info "==============@targetPackages = ${targetPackages}=============="
         }
 
         /**
@@ -86,12 +89,12 @@ public class InjectTransform extends Transform {
                 classPaths.add(directoryInput.file.absolutePath)
                 buildTypes = directoryInput.file.name
                 productFlavors = directoryInput.file.parentFile.name
-                com.codeless.plugin.utils.Log.info("项目包含的class文件夹：${directoryInput.file.absolutePath}");
+                Log.info("项目包含的class文件夹：${directoryInput.file.absolutePath}");
             }
-            com.codeless.plugin.utils.Log.info('===============================')
+            Log.info('===============================')
             input.jarInputs.each { JarInput jarInput ->
                 classPaths.add(jarInput.file.absolutePath)
-                com.codeless.plugin.utils.Log.info("项目包含的jar包：${jarInput.file.absolutePath}");
+                Log.info("项目包含的jar包：${jarInput.file.absolutePath}");
             }
         }
 
@@ -146,7 +149,7 @@ public class InjectTransform extends Transform {
                     modifyMap.entrySet().each {
                         Map.Entry<String, File> en ->
                             File target = new File(dest.absolutePath + en.getKey());
-                            com.codeless.plugin.utils.Log.info(target.getAbsolutePath());
+                            Log.info(target.getAbsolutePath());
                             if (target.exists()) {
                                 target.delete();
                             }
@@ -160,7 +163,7 @@ public class InjectTransform extends Transform {
     }
 
     private static void saveModifiedJarForCheck(File optJar) {
-        File dir = com.codeless.plugin.utils.DataHelper.ext.pluginTmpDir;
+        File dir = DataHelper.ext.pluginTmpDir;
         File checkJarFile = new File(dir, optJar.getName());
         if (checkJarFile.exists()) {
             checkJarFile.delete();
@@ -219,7 +222,7 @@ public class InjectTransform extends Transform {
                 if (entryName.endsWith(".class")) {
                     className = path2Classname(entryName)
                     if (shouldModifyClass(className)) {
-                        modifiedClassBytes = com.codeless.plugin.utils.ModifyClassUtil.modifyClasses(className, sourceClassBytes);
+                        modifiedClassBytes = ModifyClassUtil.modifyClasses(className, sourceClassBytes);
                     }
                 }
                 if (modifiedClassBytes == null) {
@@ -229,7 +232,7 @@ public class InjectTransform extends Transform {
                 }
                 jarOutputStream.closeEntry();
             }
-            com.codeless.plugin.utils.Log.info("${hexName} is modified");
+            Log.info("${hexName} is modified");
             jarOutputStream.close();
             file.close();
             return optJar;
@@ -247,7 +250,7 @@ public class InjectTransform extends Transform {
             String className = path2Classname(classFile.absolutePath.replace(dir.absolutePath + File.separator, ""));
             byte[] sourceClassBytes = IOUtils.toByteArray(new FileInputStream(classFile));
             if (shouldModifyClass(className)) {
-                byte[] modifiedClassBytes = com.codeless.plugin.utils.ModifyClassUtil.modifyClasses(className, sourceClassBytes);
+                byte[] modifiedClassBytes = ModifyClassUtil.modifyClasses(className, sourceClassBytes);
                 if (modifiedClassBytes) {
                     modified = new File(tempDir, className.replace('.', '') + '.class')
                     if (modified.exists()) {
@@ -310,11 +313,11 @@ public class InjectTransform extends Transform {
         String packageName
         try {
             def manifestFile = android.sourceSets.main.manifest.srcFile
-            com.codeless.plugin.utils.Log.info("XmlParser manifestFile: " + manifestFile)
+            Log.info("XmlParser manifestFile: " + manifestFile)
             packageName = new XmlParser().parse(manifestFile).attribute('package')
-            com.codeless.plugin.utils.Log.info("XmlParser packageName: " + packageName)
+            Log.info("XmlParser packageName: " + packageName)
         } catch (Exception e) {
-            com.codeless.plugin.utils.Log.info("XmlParser Exception: " + e.getMessage())
+            Log.info("XmlParser Exception: " + e.getMessage())
         }
         return packageName
     }

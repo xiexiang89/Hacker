@@ -11,7 +11,7 @@ public class ReWriterConfig {
     /**
      * 必须是全路径形式，不是点分形式的包名
      */
-    public static String sAgentClassName = 'com/codeless/tracker/PluginAgent'
+    public static String sAgentClassName = 'com/edgar/hacker/Track'
 
 //    String name
 //    String desc
@@ -123,29 +123,35 @@ public class ReWriterConfig {
      * Fragment中的方法
      */
     public final static HashMap<String, MethodCell> sFragmentMethods = new HashMap<>()
+
+    @Override
+    boolean equals(Object o) {
+        return super.equals(o)
+    }
+
     static {
-        sFragmentMethods.put('onResume()V', new MethodCell(
-                'onResume',
-                '()V',
-                '',// parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
-                'onFragmentResume',
-                '(Ljava/lang/Object;)V',
-                0, 1,
-                [Opcodes.ALOAD]))
-        sFragmentMethods.put('onPause()V', new MethodCell(
-                'onPause',
-                '()V',
-                '',
-                'onFragmentPause',
-                '(Ljava/lang/Object;)V',
-                0, 1,
-                [Opcodes.ALOAD]))
+//        sFragmentMethods.put('onResume()V', new MethodCell(
+//                'onResume',
+//                '()V',
+//                '',// parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
+//                'onFragmentResume',
+//                '(Ljava/lang/Object;)V',
+//                0, 1,
+//                [Opcodes.ALOAD]))
+//        sFragmentMethods.put('onPause()V', new MethodCell(
+//                'onPause',
+//                '()V',
+//                '',
+//                'onFragmentPause',
+//                '(Ljava/lang/Object;)V',
+//                0, 1,
+//                [Opcodes.ALOAD]))
         sFragmentMethods.put('setUserVisibleHint(Z)V', new MethodCell(
                 'setUserVisibleHint',
                 '(Z)V',
                 '',// parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
                 'setFragmentUserVisibleHint',
-                '(Ljava/lang/Object;Z)V',
+                '(Landroid/support/v4/app/Fragment;Z)V',
                 0, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
         sFragmentMethods.put('onHiddenChanged(Z)V', new MethodCell(
@@ -153,9 +159,17 @@ public class ReWriterConfig {
                 '(Z)V',
                 '',
                 'onFragmentHiddenChanged',
-                '(Ljava/lang/Object;Z)V',
+                '(Landroid/support/v4/app/Fragment;Z)V',
                 0, 2,
                 [Opcodes.ALOAD, Opcodes.ILOAD]))
+        sFragmentMethods.put('startActivityForResult(Landroid/content/Intent;ILandroid/os/Bundle;)V',new MethodCell(
+                'startActivityForResult',
+                '(Landroid/content/Intent;ILandroid/os/Bundle;)V',
+                '',
+                'onStartActivityForResult',
+                '(Landroid/support/v4/app/Fragment;Landroid/content/Intent;ILandroid/os/Bundle;)V',
+                0,4,
+                [Opcodes.ALOAD, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.ALOAD], true,
+                [new ParameterAnnotation(2,'Landroid/support/annotation/Nullable;')]))
     }
-
 }

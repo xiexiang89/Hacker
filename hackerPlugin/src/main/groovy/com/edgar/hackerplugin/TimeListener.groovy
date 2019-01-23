@@ -1,6 +1,6 @@
 package com.edgar.hackerplugin
 
-import com.codeless.plugin.utils.Log
+import com.edgar.hackerplugin.utils.Log
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Task
